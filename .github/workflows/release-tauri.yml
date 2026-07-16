@@ -24,6 +24,9 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install Dependencies
+        run: deno install --allow-scripts
+
       - name: Build Frontend Dist
         run: deno task frontend:build
 
