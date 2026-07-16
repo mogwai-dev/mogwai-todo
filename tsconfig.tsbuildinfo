@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/domain/datelogic.ts","./src/domain/holidaylogic.ts","./src/rust/bridge.ts","./src/storage/localstore.ts"],"version":"5.9.3"}

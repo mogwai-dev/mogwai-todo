@@ -1,0 +1,19 @@
+{
+  "tasks": {
+    "frontend:dev": "deno run -A npm:vite --host 127.0.0.1 --port 5173 --strictPort",
+    "frontend:build": "deno run -A npm:typescript/tsc -b && deno run -A npm:vite build",
+    "frontend:preview": "deno run -A npm:vite preview",
+    "desktop:dev": "mise x rust@stable -- deno run -A npm:@tauri-apps/cli dev",
+    "desktop:build": "mise x rust@stable -- deno run -A npm:@tauri-apps/cli build",
+    "desktop:info": "mise x rust@stable -- deno run -A npm:@tauri-apps/cli info",
+    "wasm:build": "cargo build --manifest-path rust-core/Cargo.toml",
+    "wasm:pack": "wasm-pack build rust-core --target web --out-dir ../src/rust/pkg --release",
+    "wasm": "deno task wasm:build ; deno task wasm:pack"
+  },
+  "imports": {},
+  "fmt": {
+    "lineWidth": 100,
+    "semiColons": true,
+    "singleQuote": false
+  }
+}
