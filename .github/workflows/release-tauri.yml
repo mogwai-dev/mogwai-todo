@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -24,8 +24,11 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Build Frontend Dist
+        run: deno task frontend:build
+
       - name: Build Desktop Bundle
-        run: deno task desktop:build
+        run: deno run -A npm:@tauri-apps/cli build
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
