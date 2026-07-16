@@ -11,6 +11,8 @@ permissions:
 jobs:
   build-and-release:
     runs-on: windows-latest
+    env:
+      DENO_NODE_MODULES_DIR: auto
 
     steps:
       - name: Checkout
@@ -25,7 +27,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Dependencies
-        run: deno install --allow-scripts
+        run: deno install --allow-scripts --node-modules-dir=auto
 
       - name: Build Frontend Dist
         run: deno task frontend:build
