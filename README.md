@@ -1,25 +1,21 @@
 # 06_todo_desktop
 
-Local-first desktop todo app (Tauri) with Deno + Rust.
+Local-first desktop todo app rebuilt with Deno Desktop.
 
 ## Features
 
 - Date switch with JST 03:00 business-day rollover
-- Show selected day + previous 2 days
+- Show selected day + previous 2 business days
 - Singleton memo (same memo across all dates)
 - 26-week contribution heatmap
-- Fully local persistence using browser storage
-- Optional Rust (WASM) core for contribution-rate/level calculation
-- Contribution refresh on app startup and todo updates
-- Holiday-based contribution exclusion (weekend/public/company)
+- Holiday-based contribution exclusion (weekend/public/company/forced)
 - All data stays local in browser storage (no external API calls)
 
 ## Runtime stack
 
-- Frontend: React + Vite
-- Runtime: Deno tasks (npm compatibility mode)
-- Native core (optional): Rust -> WebAssembly
-- Desktop shell: Tauri (Rust)
+- Runtime/UI shell: Deno Desktop (`deno desktop`)
+- UI: Vanilla HTML/CSS/JS
+- Core domain logic: TypeScript modules under `src/domain` and `src/storage`
 
 ## Runtime version management (mise)
 
@@ -36,12 +32,9 @@ the configured versions.
 ## Prerequisites
 
 - mise (recommended)
-- Deno 2.x+ (managed by mise)
-- Rust toolchain (`cargo`) (managed by mise)
-- `wasm-pack` (for generating JS/WASM bindings)
-- Windows: Visual Studio Build Tools (MSVC + Windows SDK)
+- Deno 2.9.3 (managed by mise)
 
-## Run as desktop app (Tauri)
+## Run as desktop app
 
 ```bash
 deno task desktop:dev
@@ -53,18 +46,21 @@ deno task desktop:dev
 deno task desktop:build
 ```
 
-Bundle outputs are generated under `src-tauri/target/release/bundle`.
+Outputs are generated in workspace root:
+
+- `TodoDesktop/` (contains `.exe`)
+- `TodoDesktop.msi`
 
 ## Distribute via GitHub Releases
 
 This repository includes a GitHub Actions workflow at
-`.github/workflows/release-tauri.yml`.
+`.github/workflows/release-desktop.yml`.
 
 When you push a tag that starts with `v` (for example `v0.1.0`), the workflow:
 
-- Builds the Tauri desktop bundle on `windows-latest`
+- Builds desktop artifacts with `deno desktop` on `windows-latest`
 - Creates/updates the GitHub Release for that tag
-- Uploads installer artifacts (`.msi`, `.exe`) and signature files (`.sig`)
+- Uploads installer artifacts (`.msi`, `.exe`)
 
 Example release flow:
 
@@ -77,31 +73,11 @@ After the workflow completes, your company users can download installers from:
 
 - `https://github.com/<owner>/<repo>/releases`
 
-## Internal frontend tasks (for Tauri only)
-
-The following tasks are used internally by Tauri and are not intended as the
-primary operation mode.
-
-```bash
-deno task frontend:dev
-deno task frontend:build
-```
-
 ## Desktop local-only notes
 
 - App data stays local (localStorage)
 - No external API integration is used
-- Tauri security CSP is set to self-origin only in production
-
-## Build Rust WASM core
-
-When Rust WASM is not built yet, the app automatically uses TypeScript fallback.
-
-```bash
-deno task wasm
-```
-
-This command generates runtime bridge files under `src/rust/pkg`.
+- Desktop app is packaged as a native executable/installer by `deno desktop`
 
 ## Holiday exclusion behavior
 
@@ -113,4 +89,5 @@ This command generates runtime bridge files under `src/rust/pkg`.
 ## Optional next step
 
 For stronger enterprise persistence/audit requirements, replace
-`src/storage/localStore.ts` with a local SQLite adapter in Tauri.
+`src/storage/localStore.ts` with a local database adapter and bridge it from
+`desktop/main.ts`.

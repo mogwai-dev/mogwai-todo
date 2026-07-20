@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo Desktop (Deno)</title>
+    <link rel="stylesheet" href="/app/styles.css" />
+  </head>
+  <body>
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <main class="layout">
+      <header class="hero">
+        <h1>Todo Desktop</h1>
+        <p class="subtitle">Deno Desktop 2.9.3 / Local First</p>
+      </header>
+
+      <section class="panel controls">
+        <div class="controls-row">
+          <label for="date-input">基準日</label>
+          <input id="date-input" type="date" />
+          <button id="today-btn" type="button">今日へ</button>
+          <span id="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="tabs" role="tablist" aria-label="Main tabs">
+          <button id="tab-todo" type="button" class="tab active" role="tab">Todo</button>
+          <button id="tab-settings" type="button" class="tab" role="tab">休日設定</button>
+        </div>
+
+        <div id="view-todo" class="view active" role="tabpanel">
+          <div class="columns">
+            <section class="card">
+              <h2>直近3営業日</h2>
+              <div id="days"></div>
+            </section>
+
+            <section class="card">
+              <h2>メモ（全日共通）</h2>
+              <textarea id="memo" rows="6" placeholder="共通メモ"></textarea>
+            </section>
+          </div>
+
+          <section class="card heatmap-card">
+            <div class="heatmap-header">
+              <h2>26週コントリビューション</h2>
+              <span id="engine-label">TypeScript</span>
+            </div>
+            <div id="heatmap"></div>
+            <div class="legend">
+              <span>低</span>
+              <div class="dot l0"></div>
+              <div class="dot l1"></div>
+              <div class="dot l2"></div>
+              <div class="dot l3"></div>
+              <span>高</span>
+            </div>
+          </section>
+        </div>
+
+        <div id="view-settings" class="view" role="tabpanel">
+          <section class="card settings-card">
+            <h2>除外ルール</h2>
+            <label class="switch"><input id="disable-weekend" type="checkbox" />週末を除外</label>
+            <label class="switch"><input id="disable-public" type="checkbox" />祝日を除外</label>
+            <label class="switch"><input id="disable-company" type="checkbox" />会社休日を除外</label>
+
+            <div class="settings-grid">
+              <div>
+                <h3>会社休日</h3>
+                <div class="inline-form">
+                  <input id="company-input" type="date" />
+                  <button id="company-add" type="button">追加</button>
+                </div>
+                <ul id="company-list" class="date-list"></ul>
+              </div>
+              <div>
+                <h3>強制休日</h3>
+                <div class="inline-form">
+                  <input id="forced-holiday-input" type="date" />
+                  <button id="forced-holiday-add" type="button">追加</button>
+                </div>
+                <ul id="forced-holiday-list" class="date-list"></ul>
+              </div>
+              <div>
+                <h3>強制営業日</h3>
+                <div class="inline-form">
+                  <input id="forced-working-input" type="date" />
+                  <button id="forced-working-add" type="button">追加</button>
+                </div>
+                <ul id="forced-working-list" class="date-list"></ul>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/app/app.js"></script>
+  </body>
+</html>

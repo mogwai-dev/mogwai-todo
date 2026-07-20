@@ -1,10 +1,8 @@
-node_modules
 .vscode
-dist
 .DS_Store
 *.log
-src/rust/pkg
-rust-core/target
-src-tauri/target
-Cargo.lock
-deno.lock
+
+# Deno Desktop build outputs
+TodoDesktop/
+TodoDesktop.msi
+desktop.dll.tmp-*

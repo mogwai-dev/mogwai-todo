@@ -1,4 +1,4 @@
-import { sanitizeDate } from "./dateLogic";
+import { sanitizeDate } from "./dateLogic.ts";
 
 export type HolidaySettings = {
   disableWeekend: boolean;

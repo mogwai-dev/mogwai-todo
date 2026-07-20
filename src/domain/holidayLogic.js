@@ -1,11 +1,10 @@
-import { sanitizeDate } from "./dateLogic";
+import { sanitizeDate } from "./dateLogic.js";
 const HOLIDAY_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 export function defaultHolidaySettings() {
     return {
         disableWeekend: true,
         disablePublicHoliday: true,
         disableCompanyHoliday: true,
-        includeCompanyHoliday: false,
         companyHolidays: {},
         forcedHolidays: {},
         forcedWorkingDays: {},
@@ -37,7 +36,6 @@ export function normalizeHolidaySettings(input) {
         disableWeekend: raw.disableWeekend ?? fallback.disableWeekend,
         disablePublicHoliday: raw.disablePublicHoliday ?? fallback.disablePublicHoliday,
         disableCompanyHoliday: raw.disableCompanyHoliday ?? fallback.disableCompanyHoliday,
-        includeCompanyHoliday: raw.includeCompanyHoliday ?? fallback.includeCompanyHoliday,
         companyHolidays,
         forcedHolidays,
         forcedWorkingDays,

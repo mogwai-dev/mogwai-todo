@@ -1,5 +1,5 @@
-import { contributionDateRange } from "../domain/dateLogic";
-import { defaultHolidaySettings, holidayExclusionReasons, normalizeHolidaySettings, } from "../domain/holidayLogic";
+import { contributionDateRange } from "../domain/dateLogic.js";
+import { defaultHolidaySettings, holidayExclusionReasons, normalizeHolidaySettings, } from "../domain/holidayLogic.js";
 const TODO_PREFIX = "todo.v1.items.";
 const TODO_MEMO_KEY = "todo.v1.memo.singleton";
 const TODO_HOLIDAY_SETTINGS_KEY = "todo.v1.holiday.settings";
@@ -24,7 +24,10 @@ function writeJson(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
 export function listTodosByDate(date) {
-    const list = readJson(STORAGE_KEYS.items(date), []);
+    const raw = readJson(STORAGE_KEYS.items(date), []);
+    const list = Array.isArray(raw)
+        ? raw.map((item) => normalizeTodoItem(item)).filter((item) => item !== null)
+        : [];
     return [...list].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 export function addTodo(date, text) {
@@ -34,6 +37,7 @@ export function addTodo(date, text) {
         text,
         done: false,
         createdAt: new Date().toISOString(),
+        note: "",
     };
     items.push(item);
     writeJson(STORAGE_KEYS.items(date), items);
@@ -44,6 +48,10 @@ export function toggleTodo(date, id) {
 }
 export function deleteTodo(date, id) {
     const items = listTodosByDate(date).filter((item) => item.id !== id);
+    writeJson(STORAGE_KEYS.items(date), items);
+}
+export function updateTodoNote(date, id, note) {
+    const items = listTodosByDate(date).map((item) => item.id === id ? { ...item, note } : item);
     writeJson(STORAGE_KEYS.items(date), items);
 }
 export function getMemo() {
@@ -76,4 +84,20 @@ export function loadContribution(endDate, settings = defaultHolidaySettings()) {
             excludedReasons,
         };
     });
+}
+function normalizeTodoItem(input) {
+    if (!input || typeof input !== "object") {
+        return null;
+    }
+    const raw = input;
+    if (typeof raw.id !== "string" || typeof raw.text !== "string" || typeof raw.createdAt !== "string") {
+        return null;
+    }
+    return {
+        id: raw.id,
+        text: raw.text,
+        done: Boolean(raw.done),
+        createdAt: raw.createdAt,
+        note: typeof raw.note === "string" ? raw.note : "",
+    };
 }

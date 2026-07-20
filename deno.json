@@ -1,15 +1,14 @@
 {
   "tasks": {
-    "frontend:dev": "deno run -A npm:vite --host 127.0.0.1 --port 5173 --strictPort",
-    "frontend:build": "deno run -A npm:typescript/tsc -b && deno run -A npm:vite build",
-    "frontend:preview": "deno run -A npm:vite preview",
-    "desktop:dev": "mise x rust@stable -- deno run -A npm:@tauri-apps/cli dev",
-    "desktop:build": "mise x rust@stable -- deno run -A npm:@tauri-apps/cli build",
-    "desktop:info": "mise x rust@stable -- deno run -A npm:@tauri-apps/cli info",
-    "wasm:build": "cargo build --manifest-path rust-core/Cargo.toml",
-    "wasm:pack": "wasm-pack build rust-core --target web --out-dir ../src/rust/pkg --release",
-    "wasm": "deno task wasm:build ; deno task wasm:pack"
+    "desktop:dev": "deno desktop desktop/main.ts",
+    "desktop:dev:hmr": "deno desktop --hmr desktop/main.ts",
+    "desktop:dev:cef": "deno desktop --backend cef desktop/main.ts",
+    "desktop:build:exe": "deno desktop --output TodoDesktop.exe desktop/main.ts",
+    "desktop:build:msi": "deno desktop --output TodoDesktop.msi desktop/main.ts",
+    "desktop:build": "deno task desktop:build:exe ; deno task desktop:build:msi",
+    "check": "deno check desktop/main.ts src/domain/dateLogic.ts src/domain/holidayLogic.ts src/storage/localStore.ts"
   },
+  "lock": false,
   "imports": {},
   "fmt": {
     "lineWidth": 100,

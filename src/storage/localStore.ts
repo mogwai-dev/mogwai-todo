@@ -1,10 +1,10 @@
-import { contributionDateRange } from "../domain/dateLogic";
+import { contributionDateRange } from "../domain/dateLogic.ts";
 import {
   defaultHolidaySettings,
   holidayExclusionReasons,
   normalizeHolidaySettings,
   type HolidaySettings,
-} from "../domain/holidayLogic";
+} from "../domain/holidayLogic.ts";
 
 export type TodoItem = {
   id: string;
@@ -116,7 +116,7 @@ export function loadContribution(
   endDate: string,
   settings: HolidaySettings = defaultHolidaySettings(),
 ): DayStats[] {
-  return contributionDateRange(endDate).map((date) => {
+  return contributionDateRange(endDate).map((date: string) => {
     const stats = listStatsByDate(date);
     const excludedReasons = holidayExclusionReasons(date, settings);
     return {
