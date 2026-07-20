@@ -1,5 +1,6 @@
-const ROOT = Deno.cwd();
-const APP_DIR = `${ROOT}/app`;
+const ENTRY_DIR = import.meta.dirname;
+const APP_DIR = `${ENTRY_DIR}/../app`;
+const SRC_DIR = `${ENTRY_DIR}/../src`;
 
 const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -31,10 +32,10 @@ function toSafePath(urlPathname: string): string | null {
     return `${APP_DIR}/index.html`;
   }
   if (decoded.startsWith("/app/")) {
-    return `${ROOT}${decoded}`;
+    return `${APP_DIR}/${decoded.slice("/app/".length)}`;
   }
   if (decoded.startsWith("/src/")) {
-    return `${ROOT}${decoded}`;
+    return `${SRC_DIR}/${decoded.slice("/src/".length)}`;
   }
   if (decoded === "/favicon.ico") {
     return `${APP_DIR}/favicon.ico`;

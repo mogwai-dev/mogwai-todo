@@ -48,8 +48,17 @@ deno task desktop:build
 
 Outputs are generated in workspace root:
 
-- `TodoDesktop/` (contains `.exe`)
-- `TodoDesktop.msi`
+- `out/TodoDesktop/` (contains `laufey_webview.exe`, `TodoDesktop.dll`, `TodoDesktop.bat`)
+- `out/TodoDesktop.msi`
+
+For local runnable EXE output, launch:
+
+- `deno task desktop:run:portable`
+
+
+This launcher uses an absolute runtime path and is more stable than double-clicking generated files.
+
+(`laufey_webview.exe` directly may fail with runtime library resolution.)
 
 ## Distribute via GitHub Releases
 

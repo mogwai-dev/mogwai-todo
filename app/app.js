@@ -19,13 +19,16 @@ import {
 } from "/src/domain/holidayLogic.js";
 import {
   addTodo,
+  carryOverHeldTodos,
   deleteTodo,
   getHolidaySettings,
   getMemo,
   listTodosByDate,
   loadContribution,
+  moveTodo,
   saveHolidaySettings,
   saveMemo,
+  toggleTodoHold,
   toggleTodo,
   updateTodoNote,
 } from "/src/storage/localStore.js";
@@ -172,18 +175,20 @@ function renderTodoDays() {
     const list = document.createElement("ul");
     list.className = "todo-list";
 
-    for (const item of todos) {
+    for (const [index, item] of todos.entries()) {
       const li = document.createElement("li");
       li.className = "todo-item";
 
       const row = document.createElement("div");
       row.className = `todo-main ${item.done ? "done" : ""}`;
 
-      const check = document.createElement("input");
-      check.type = "checkbox";
-      check.checked = item.done;
-      check.disabled = !editable;
-      check.addEventListener("change", () => {
+      const doneBtn = document.createElement("button");
+      doneBtn.type = "button";
+      doneBtn.className = `todo-btn done-toggle ${item.done ? "done" : "todo"}`;
+      doneBtn.textContent = item.done ? "完了" : "未完";
+      doneBtn.disabled = !editable;
+      doneBtn.setAttribute("aria-pressed", item.done ? "true" : "false");
+      doneBtn.addEventListener("click", () => {
         if (!editable) {
           setStatus("編集できるのは今日と昨日のみです。");
           return;
@@ -195,9 +200,62 @@ function renderTodoDays() {
       const label = document.createElement("label");
       label.textContent = item.text;
 
+      const actions = document.createElement("div");
+      actions.className = "todo-actions";
+
+      const up = document.createElement("button");
+      up.type = "button";
+      up.className = "outline mini";
+      up.textContent = "↑";
+      up.disabled = !editable || index === 0;
+      up.title = "上へ移動";
+      up.addEventListener("click", () => {
+        if (!editable) {
+          setStatus("編集できるのは今日と昨日のみです。");
+          return;
+        }
+        moveTodo(date, item.id, -1);
+        refresh();
+      });
+
+      const down = document.createElement("button");
+      down.type = "button";
+      down.className = "outline mini";
+      down.textContent = "↓";
+      down.disabled = !editable || index === todos.length - 1;
+      down.title = "下へ移動";
+      down.addEventListener("click", () => {
+        if (!editable) {
+          setStatus("編集できるのは今日と昨日のみです。");
+          return;
+        }
+        moveTodo(date, item.id, 1);
+        refresh();
+      });
+
+      actions.append(up, down);
+
+      const holdLabel = document.createElement("label");
+      holdLabel.className = "todo-hold";
+      const holdCheck = document.createElement("input");
+      holdCheck.type = "checkbox";
+      holdCheck.checked = Boolean(item.onHold);
+      holdCheck.disabled = !editable;
+      holdCheck.addEventListener("change", () => {
+        if (!editable) {
+          setStatus("編集できるのは今日と昨日のみです。");
+          return;
+        }
+        toggleTodoHold(date, item.id, holdCheck.checked);
+        refresh();
+      });
+      const holdText = document.createElement("span");
+      holdText.textContent = "保留";
+      holdLabel.append(holdCheck, holdText);
+
       const del = document.createElement("button");
       del.type = "button";
-      del.className = "outline";
+      del.className = "todo-btn delete-btn";
       del.textContent = "削除";
       del.disabled = !editable;
       del.addEventListener("click", () => {
@@ -209,7 +267,7 @@ function renderTodoDays() {
         refresh();
       });
 
-      row.append(check, label, del);
+      row.append(doneBtn, label, actions, holdLabel, del);
 
       const noteWrap = document.createElement("div");
       noteWrap.className = "todo-note";
@@ -371,6 +429,10 @@ function renderSettings() {
 }
 
 function refresh() {
+  const moved = carryOverHeldTodos(todayIsoDate());
+  if (moved > 0) {
+    setStatus(`保留Todoを${moved}件、今日に持ち越しました。`);
+  }
   state.dataRevision += 1;
   refs.dateInput.value = state.selectedDate;
   refs.memo.value = getMemo();
