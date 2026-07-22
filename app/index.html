@@ -7,66 +7,84 @@
     <link rel="stylesheet" href="/app/styles.css" />
   </head>
   <body>
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
-
-    <main class="layout">
-      <header class="hero">
-        <h1>Todo Desktop</h1>
-        <p class="subtitle">Deno Desktop 2.9.3 / Local First</p>
+    <main class="page-shell">
+      <header class="page-header">
+        <p class="eyebrow">Local-first desktop app</p>
+        <h1>Todo</h1>
+        <p class="muted intro">
+          選択日と過去2営業日分のTodoをまとめて確認できます。日付の切替はJST午前3時です。
+        </p>
       </header>
 
-      <section class="panel controls">
-        <div class="controls-row">
-          <label for="date-input">基準日</label>
+      <section class="date-controls" aria-label="表示する日付">
+        <label for="date-input">日付</label>
+        <div class="date-controls__actions">
           <input id="date-input" type="date" />
-          <button id="today-btn" type="button">今日へ</button>
-          <span id="status" aria-live="polite"></span>
+          <button id="today-btn" type="button">今日を表示</button>
         </div>
+        <span id="status" aria-live="polite"></span>
       </section>
 
-      <section class="panel">
-        <div class="tabs" role="tablist" aria-label="Main tabs">
+      <section class="summary-section" aria-labelledby="summary-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="summary-title">今日のサマリー</h2>
+            <p class="muted">共有や記録に使えるテキスト形式です。</p>
+          </div>
+          <button id="copy-summary" type="button">コピー</button>
+        </div>
+        <pre id="summary-output" class="summary-output"></pre>
+      </section>
+
+      <section class="workspace">
+        <div class="tabs" role="tablist" aria-label="Todo view">
           <button id="tab-todo" type="button" class="tab active" role="tab">Todo</button>
-          <button id="tab-settings" type="button" class="tab" role="tab">休日設定</button>
+          <button id="tab-settings" type="button" class="tab" role="tab">休日・表示設定</button>
         </div>
 
         <div id="view-todo" class="view active" role="tabpanel">
-          <div class="columns">
-            <section class="card">
-              <h2>直近3営業日</h2>
-              <div id="days"></div>
-            </section>
+          <section class="memo-section">
+            <h2>メモ</h2>
+            <textarea id="memo" rows="5" placeholder="共通メモ"></textarea>
+            <p class="muted helper">入力内容はこの端末のブラウザストレージへ自動保存されます。</p>
+          </section>
 
-            <section class="card">
-              <h2>メモ（全日共通）</h2>
-              <textarea id="memo" rows="6" placeholder="共通メモ"></textarea>
-            </section>
-          </div>
+          <section class="todo-section">
+            <div class="section-heading">
+              <div>
+                <h2>Todo</h2>
+                <p class="muted">選択日と直近2営業日を表示します。編集は今日と昨日のみ可能です。</p>
+              </div>
+            </div>
+            <div id="days"></div>
+          </section>
 
-          <section class="card heatmap-card">
-            <div class="heatmap-header">
-              <h2>26週コントリビューション</h2>
-              <span id="engine-label">TypeScript</span>
+          <section class="contribution-section">
+            <div class="section-heading contribution-heading">
+              <div>
+                <h2>コントリビューション</h2>
+                <p class="muted">過去26週間の完了率です。</p>
+              </div>
+              <span id="engine-label">TypeScript Logic</span>
             </div>
             <div id="heatmap"></div>
-            <div class="legend">
-              <span>低</span>
-              <div class="dot l0"></div>
-              <div class="dot l1"></div>
-              <div class="dot l2"></div>
-              <div class="dot l3"></div>
-              <span>高</span>
+            <div class="legend" aria-label="完了率の凡例">
+              <span>低</span><span class="dot l0"></span><span class="dot l1"></span>
+              <span class="dot l2"></span><span class="dot l3"></span><span>高</span>
             </div>
           </section>
         </div>
 
         <div id="view-settings" class="view" role="tabpanel">
-          <section class="card settings-card">
-            <h2>除外ルール</h2>
+          <section class="settings-section">
+            <h2>休日・表示設定</h2>
+            <p class="muted">除外された日はコントリビューション上でグレー表示されます。</p>
+            <fieldset class="rule-list">
+              <legend>除外ルール</legend>
             <label class="switch"><input id="disable-weekend" type="checkbox" />週末を除外</label>
             <label class="switch"><input id="disable-public" type="checkbox" />祝日を除外</label>
             <label class="switch"><input id="disable-company" type="checkbox" />会社休日を除外</label>
+            </fieldset>
 
             <div class="settings-grid">
               <div>

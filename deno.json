@@ -1,10 +1,10 @@
 {
   "tasks": {
-    "desktop:dev": "deno desktop --output .deno-desktop/dev.exe desktop/main.ts",
-    "desktop:dev:hmr": "deno desktop --hmr --output .deno-desktop/dev-hmr.exe desktop/main.ts",
-    "desktop:dev:cef": "deno desktop --backend cef --output .deno-desktop/dev-cef.exe desktop/main.ts",
-    "desktop:build:exe": "deno desktop --include app/index.html --include app/styles.css --include app/app.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/storage/localStore.js --output out/TodoDesktop.exe desktop/main.ts",
-    "desktop:build:msi": "deno desktop --include app/index.html --include app/styles.css --include app/app.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/storage/localStore.js --output out/TodoDesktop.msi desktop/main.ts",
+    "desktop:dev": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --output .deno-desktop/dev.exe desktop/main.ts",
+    "desktop:dev:hmr": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --hmr --output .deno-desktop/dev-hmr.exe desktop/main.ts",
+    "desktop:dev:cef": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --backend cef --output .deno-desktop/dev-cef.exe desktop/main.ts",
+    "desktop:build:exe": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --include app/index.html --include app/styles.css --include app/app.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/storage/localStore.js --output out/TodoDesktop.exe desktop/main.ts",
+    "desktop:build:msi": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --include app/index.html --include app/styles.css --include app/app.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/storage/localStore.js --output out/TodoDesktop.msi desktop/main.ts",
     "desktop:build": "deno task desktop:build:exe ; deno task desktop:build:msi",
     "desktop:run:portable": "cmd /c desktop\\run-portable.cmd out\\TodoDesktop",
     "desktop:run:portable:direct": "cmd /c desktop\\run-portable.cmd out\\TodoDesktop",

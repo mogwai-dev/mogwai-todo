@@ -59,6 +59,8 @@ const refs = {
   companyInput: document.querySelector("#company-input"),
   companyAdd: document.querySelector("#company-add"),
   companyList: document.querySelector("#company-list"),
+  copySummary: document.querySelector("#copy-summary"),
+  summaryOutput: document.querySelector("#summary-output"),
   forcedHolidayInput: document.querySelector("#forced-holiday-input"),
   forcedHolidayAdd: document.querySelector("#forced-holiday-add"),
   forcedHolidayList: document.querySelector("#forced-holiday-list"),
@@ -124,6 +126,27 @@ function toContributionWeeks(days) {
     weeks.push(cells.slice(i, i + 7));
   }
   return weeks;
+}
+
+function renderSummary() {
+  const date = todayIsoDate();
+  const todos = listTodosByDate(date);
+  const done = todos.filter((item) => item.done).length;
+  const held = todos.filter((item) => item.onHold && !item.done).length;
+  const pending = todos.length - done;
+  const pendingItems = todos
+    .filter((item) => !item.done)
+    .map((item) => `- ${item.text}${item.onHold ? " [保留]" : ""}`);
+
+  refs.summaryOutput.textContent = [
+    `${formatDate(date)} Todoサマリー`,
+    `完了: ${done}/${todos.length}`,
+    `未完了: ${pending}`,
+    `保留: ${held}`,
+    "",
+    pendingItems.length > 0 ? "未完了一覧:" : "未完了Todoはありません。",
+    ...pendingItems,
+  ].join("\n");
 }
 
 function renderTodoDays() {
@@ -436,6 +459,7 @@ function refresh() {
   state.dataRevision += 1;
   refs.dateInput.value = state.selectedDate;
   refs.memo.value = getMemo();
+  renderSummary();
   renderTodoDays();
   renderHeatmap();
   renderSettings();
@@ -455,6 +479,15 @@ function bindEvents() {
     writeSelectedDate(state.selectedDate);
     setStatus("");
     refresh();
+  });
+
+  refs.copySummary.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(refs.summaryOutput.textContent);
+      setStatus("今日のサマリーをコピーしました。");
+    } catch {
+      setStatus("コピーできませんでした。テキストを選択してコピーしてください。");
+    }
   });
 
   refs.memo.addEventListener("input", () => {
