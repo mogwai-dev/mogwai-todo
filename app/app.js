@@ -33,6 +33,7 @@ import {
   updateTodoNote,
 } from "/src/storage/localStore.js";
 import { initImpactGraph } from "/app/impactGraph.js";
+import { initTemplateRunner } from "/app/templateRunner.js";
 
 const TODO_VISIBLE_WORKING_DAYS = 3;
 
@@ -52,9 +53,11 @@ const refs = {
   heatmap: document.querySelector("#heatmap"),
   tabTodo: document.querySelector("#tab-todo"),
   tabImpact: document.querySelector("#tab-impact"),
+  tabTemplate: document.querySelector("#tab-template"),
   tabSettings: document.querySelector("#tab-settings"),
   viewTodo: document.querySelector("#view-todo"),
   viewImpact: document.querySelector("#view-impact"),
+  viewTemplate: document.querySelector("#view-template"),
   viewSettings: document.querySelector("#view-settings"),
   disableWeekend: document.querySelector("#disable-weekend"),
   disablePublic: document.querySelector("#disable-public"),
@@ -458,6 +461,7 @@ function setActiveTab(activeKey) {
   const tabs = {
     todo: [refs.tabTodo, refs.viewTodo],
     impact: [refs.tabImpact, refs.viewImpact],
+    template: [refs.tabTemplate, refs.viewTemplate],
     settings: [refs.tabSettings, refs.viewSettings],
   };
   for (const [key, [tabEl, viewEl]] of Object.entries(tabs)) {
@@ -512,6 +516,7 @@ function bindEvents() {
 
   refs.tabTodo.addEventListener("click", () => setActiveTab("todo"));
   refs.tabImpact.addEventListener("click", () => setActiveTab("impact"));
+  refs.tabTemplate.addEventListener("click", () => setActiveTab("template"));
   refs.tabSettings.addEventListener("click", () => setActiveTab("settings"));
 
   refs.disableWeekend.addEventListener("change", () => {
@@ -558,7 +563,71 @@ function initDefaults() {
   refs.forcedWorkingInput.value = today;
 }
 
+/**
+ * Wires every ".impact-help-btn" ("?") button in the app to a single shared
+ * popover that shows the button's `data-help` text - used for form fields
+ * whose full description is too long to fit in a placeholder.
+ */
+function wireHelpButtons() {
+  const popover = document.createElement("div");
+  popover.className = "impact-help-popover";
+  popover.setAttribute("role", "tooltip");
+  popover.hidden = true;
+  document.body.append(popover);
+
+  let activeBtn = null;
+
+  function closePopover() {
+    popover.hidden = true;
+    activeBtn?.classList.remove("active");
+    activeBtn = null;
+  }
+
+  function openPopover(btn) {
+    popover.textContent = btn.dataset.help ?? "";
+    popover.hidden = false;
+    const rect = btn.getBoundingClientRect();
+    popover.style.top = `${rect.bottom + 6}px`;
+    popover.style.left = `${rect.left}px`;
+    const popRect = popover.getBoundingClientRect();
+    const maxLeft = window.innerWidth - popRect.width - 8;
+    if (rect.left > maxLeft) {
+      popover.style.left = `${Math.max(8, maxLeft)}px`;
+    }
+    const maxTop = window.innerHeight - popRect.height - 8;
+    if (rect.bottom + 6 > maxTop) {
+      popover.style.top = `${Math.max(8, rect.top - popRect.height - 6)}px`;
+    }
+    btn.classList.add("active");
+    activeBtn = btn;
+  }
+
+  for (const btn of document.querySelectorAll(".impact-help-btn")) {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (activeBtn === btn) {
+        closePopover();
+      } else {
+        openPopover(btn);
+      }
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    if (!popover.hidden && !popover.contains(event.target)) {
+      closePopover();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closePopover();
+    }
+  });
+}
+
 bindEvents();
 initDefaults();
 refresh();
 initImpactGraph();
+initTemplateRunner();
+wireHelpButtons();

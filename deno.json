@@ -11,7 +11,7 @@
     "tauri:prep": "deno run --allow-read --allow-write desktop/build-tauri-dist.ts",
     "tauri:dev": "cargo tauri dev",
     "tauri:build": "cargo tauri build",
-    "check": "deno check desktop/main.ts src/domain/dateLogic.ts src/domain/holidayLogic.ts src/domain/impactGraph.ts src/storage/localStore.ts src/storage/impactGraphStore.ts"
+    "check": "deno check desktop/main.ts src/domain/dateLogic.ts src/domain/holidayLogic.ts src/domain/impactGraph.ts src/domain/templateRunner.ts src/storage/localStore.ts src/storage/impactGraphStore.ts src/storage/templateRunnerStore.ts"
   },
   "lock": false,
   "imports": {},

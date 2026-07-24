@@ -11,11 +11,14 @@ const FILES: [string, string][] = [
   ["app/styles.css", "app/styles.css"],
   ["app/app.js", "app/app.js"],
   ["app/impactGraph.js", "app/impactGraph.js"],
+  ["app/templateRunner.js", "app/templateRunner.js"],
   ["src/domain/dateLogic.js", "src/domain/dateLogic.js"],
   ["src/domain/holidayLogic.js", "src/domain/holidayLogic.js"],
   ["src/domain/impactGraph.js", "src/domain/impactGraph.js"],
+  ["src/domain/templateRunner.js", "src/domain/templateRunner.js"],
   ["src/storage/localStore.js", "src/storage/localStore.js"],
   ["src/storage/impactGraphStore.js", "src/storage/impactGraphStore.js"],
+  ["src/storage/templateRunnerStore.js", "src/storage/templateRunnerStore.js"],
 ];
 
 await Deno.remove(DIST_DIR, { recursive: true }).catch(() => {});

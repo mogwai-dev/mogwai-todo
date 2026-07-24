@@ -10,6 +10,7 @@
     <nav class="app-tabbar" role="tablist" aria-label="アプリ切り替え">
       <button id="tab-todo" type="button" class="tab active" role="tab">Todo</button>
       <button id="tab-impact" type="button" class="tab" role="tab">影響管理</button>
+      <button id="tab-template" type="button" class="tab" role="tab">テンプレートランナー</button>
       <button id="tab-settings" type="button" class="tab" role="tab">休日・表示設定</button>
     </nav>
 
@@ -107,14 +108,23 @@
               </div>
             </div>
 
-            <div class="impact-editor">
+            <div id="impact-editor" class="impact-editor">
               <nav class="impact-editor-tabs" role="tablist" aria-label="編集パネル">
                 <button id="impact-editor-tab-node" type="button" class="tab active">ノード</button>
                 <button id="impact-editor-tab-edge" type="button" class="tab">関係</button>
                 <button id="impact-editor-tab-snapshot" type="button" class="tab">スナップショット</button>
                 <button id="impact-editor-tab-io" type="button" class="tab">インポート / エクスポート</button>
+                <button
+                  id="impact-editor-toggle"
+                  type="button"
+                  class="outline impact-editor-toggle"
+                  aria-expanded="true"
+                >
+                  ▾ 閉じる
+                </button>
               </nav>
 
+              <div class="impact-editor-body">
               <div id="impact-editor-panel-node" class="impact-editor-panel active" role="tabpanel">
                 <div class="impact-editor-panel-grid">
                   <div id="impact-node-form" class="impact-form">
@@ -190,9 +200,169 @@
                 <button id="impact-import-run" type="button">インポート実行（現在のデータは自動保存されます）</button>
                 <div id="impact-import-warnings" class="muted"></div>
               </div>
+              </div>
             </div>
 
       <p id="impact-status" class="impact-status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <main id="view-template" class="view template-page" role="tabpanel">
+      <section class="template-section">
+        <div class="section-heading">
+          <div>
+            <h2>テンプレートランナー</h2>
+            <p class="muted">
+              フォルダ・ファイルのテンプレート構成と依存関係を可視化し、各ノードのランスクリプトを依存順に実行します。
+            </p>
+          </div>
+        </div>
+
+        <div class="template-toolbar">
+          <select id="template-select"></select>
+          <input id="template-name-input" type="text" placeholder="テンプレート名" />
+          <button id="template-add" type="button" class="outline">追加</button>
+          <button id="template-rename" type="button" class="outline">名前変更</button>
+          <button id="template-delete" type="button" class="outline">削除</button>
+        </div>
+
+        <div class="template-output-root">
+          <span class="muted">出力先フォルダ:</span>
+          <code id="template-output-root-path">未設定</code>
+          <button id="template-pick-root" type="button" class="outline">選択</button>
+        </div>
+
+        <div class="impact-canvas-wrap">
+          <svg id="template-svg" class="impact-svg" viewBox="0 0 1400 360" preserveAspectRatio="xMinYMin meet"></svg>
+          <p class="muted helper">
+            実線はフォルダ／ファイルの親子関係、破線はプロパティ参照の依存関係です。ノードをクリックすると編集できます。
+          </p>
+        </div>
+
+        <div id="template-editor" class="impact-editor">
+          <nav class="impact-editor-tabs" role="tablist" aria-label="編集パネル">
+            <button id="template-editor-tab-node" type="button" class="tab active">ノード</button>
+            <button id="template-editor-tab-run" type="button" class="tab">実行 / YAML</button>
+            <button id="template-editor-tab-log" type="button" class="tab">実行ログ</button>
+            <button
+              id="template-editor-toggle"
+              type="button"
+              class="outline impact-editor-toggle"
+              aria-expanded="true"
+            >
+              ▾ 閉じる
+            </button>
+          </nav>
+
+          <div class="impact-editor-body">
+          <div id="template-editor-panel-node" class="impact-editor-panel active" role="tabpanel">
+            <div class="impact-editor-panel-grid">
+              <div id="template-node-form" class="impact-form">
+                <h3>ノード</h3>
+                <div class="impact-field-help">
+                  <input
+                    id="template-node-path"
+                    type="text"
+                    placeholder="パス"
+                  />
+                  <button
+                    type="button"
+                    class="impact-help-btn"
+                    aria-label="パスのヘルプ"
+                    data-help="ノードの識別子となるパスを入力します。&#10;例: AAA/部品リスト/AAAの部品リスト1.txt"
+                  >?</button>
+                </div>
+                <select id="template-node-kind">
+                  <option value="folder">フォルダ</option>
+                  <option value="file">ファイル</option>
+                </select>
+                <div id="template-node-folder-name-wrap">
+                  <div class="impact-field-help">
+                    <input
+                      id="template-node-folder-name"
+                      type="text"
+                      placeholder="出力フォルダ名"
+                    />
+                    <button
+                      type="button"
+                      class="impact-help-btn"
+                      aria-label="出力フォルダ名のヘルプ"
+                      data-help="実際に出力されるフォルダ名です。省略時はパスの末尾を使用します。&#10;例: ${self.モデル名}_出力 や ${node('AAA').モデル名}"
+                    >?</button>
+                  </div>
+                  <p class="muted helper">
+                    フォルダの実際の出力名を、パス（識別子）とは別に指定できます。自身のプロパティは
+                    <code>${self.キー}</code>、他ノードのプロパティは
+                    <code>${node('パス').キー}</code> で参照できます。
+                  </p>
+                </div>
+                <h3>プロパティ</h3>
+                <div id="template-node-properties" class="template-properties"></div>
+                <button id="template-node-property-add" type="button" class="outline">プロパティ追加</button>
+                <div class="impact-field-help">
+                  <textarea
+                    id="template-node-run-script"
+                    rows="3"
+                    placeholder="ランスクリプト"
+                  ></textarea>
+                  <button
+                    type="button"
+                    class="impact-help-btn"
+                    aria-label="ランスクリプトのヘルプ"
+                    data-help="このノードを生成する際に実行するスクリプトです。&#10;例: powershell -NoProfile -Command &quot;'内容' | Out-File -FilePath $env:TR_NODE_ABS_PATH -Encoding utf8&quot;"
+                  >?</button>
+                </div>
+                <p class="muted helper">
+                  値やスクリプト内で他ノードのプロパティを参照するには
+                  <code>${node('AAA/部品リスト').name}</code> のように書けます。
+                </p>
+                <div class="impact-form-actions">
+                  <button id="template-node-save" type="button">保存</button>
+                  <button id="template-node-delete" type="button" class="outline">削除</button>
+                  <button id="template-node-cancel" type="button" class="outline">キャンセル</button>
+                </div>
+              </div>
+
+              <div class="impact-list-panel">
+                <h3>ノード一覧</h3>
+                <ul id="template-node-list" class="impact-item-list"></ul>
+              </div>
+            </div>
+          </div>
+
+          <div id="template-editor-panel-run" class="impact-editor-panel" role="tabpanel">
+            <p class="muted helper">選択中のノード: <strong id="template-run-node-label">-</strong></p>
+            <div class="impact-form-actions">
+              <button id="template-run-node" type="button">このノードを実行</button>
+              <button id="template-run-all" type="button" class="outline">全体実行（依存順）</button>
+            </div>
+            <h3>評価済みYAML（プレビュー）</h3>
+            <pre id="template-yaml-preview" class="summary-output"></pre>
+            <p id="template-run-status" class="impact-status" aria-live="polite"></p>
+
+            <h3>
+              テキスト出力（比較用）
+              <button
+                type="button"
+                class="impact-help-btn"
+                aria-label="テキスト出力のヘルプ"
+                data-help="このテンプレート全体（依存関係含む）を、後でGit等でテキスト比較しやすい形式で書き出します。&#10;Taskfile: go-task用のYAML形式で、依存関係やコマンドをそのまま実行できます。&#10;Makefile: 比較用のベストエフォート出力です。ノードパスに空白が含まれる場合はターゲット名として不正確になる場合があります（&quot;\ &quot;でエスケープ済み）。実行より比較目的での利用を推奨します。"
+              >?</button>
+            </h3>
+            <div class="impact-form-actions">
+              <button id="template-export-taskfile" type="button" class="outline">Taskfile出力</button>
+              <button id="template-export-makefile" type="button" class="outline">Makefile出力</button>
+            </div>
+          </div>
+
+          <div id="template-editor-panel-log" class="impact-editor-panel" role="tabpanel">
+            <div class="impact-form-actions">
+              <button id="template-log-clear" type="button" class="outline">ログをクリア</button>
+            </div>
+            <ul id="template-log-list" class="template-log-list"></ul>
+          </div>
+          </div>
+        </div>
       </section>
     </main>
 

@@ -1022,6 +1022,13 @@ function setEditorTab(tab) {
     refs.editorTabs[name].classList.toggle("active", name === tab);
     refs.editorPanels[name].classList.toggle("active", name === tab);
   }
+  setEditorCollapsed(false);
+}
+
+function setEditorCollapsed(collapsed) {
+  refs.editorContainer.classList.toggle("collapsed", collapsed);
+  refs.editorToggle.setAttribute("aria-expanded", String(!collapsed));
+  refs.editorToggle.textContent = collapsed ? "▴ 開く" : "▾ 閉じる";
 }
 
 function bindEvents() {
@@ -1033,6 +1040,10 @@ function bindEvents() {
   for (const name of EDITOR_TABS) {
     refs.editorTabs[name].addEventListener("click", () => setEditorTab(name));
   }
+
+  refs.editorToggle.addEventListener("click", () => {
+    setEditorCollapsed(!refs.editorContainer.classList.contains("collapsed"));
+  });
 
   for (const radio of refs.directionRadios) {
     radio.addEventListener("change", () => {
@@ -1081,6 +1092,8 @@ export function initImpactGraph() {
     status: q("impact-status"),
     modeVisualize: q("impact-mode-visualize"),
     modeEdit: q("impact-mode-edit"),
+    editorContainer: q("impact-editor"),
+    editorToggle: q("impact-editor-toggle"),
     editorTabs: {
       node: q("impact-editor-tab-node"),
       edge: q("impact-editor-tab-edge"),

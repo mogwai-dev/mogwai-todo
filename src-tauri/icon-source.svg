@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6" />
+      <stop offset="1" stop-color="#1e3a8a" />
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <rect x="32" y="32" width="960" height="960" rx="200" fill="url(#bg)" />
+  <rect x="32" y="32" width="960" height="480" rx="200" fill="url(#sheen)" />
+
+  <!-- checklist card -->
+  <rect x="228" y="196" width="568" height="632" rx="46" fill="#ffffff" fill-opacity="0.98" />
+
+  <!-- checklist rows -->
+  <g stroke="#1e3a8a" stroke-width="26" stroke-linecap="round">
+    <line x1="336" y1="360" x2="716" y2="360" opacity="0.16" />
+    <line x1="336" y1="470" x2="716" y2="470" opacity="0.16" />
+    <line x1="336" y1="580" x2="636" y2="580" opacity="0.16" />
+  </g>
+  <g fill="#22c55e">
+    <circle cx="300" cy="360" r="26" />
+    <circle cx="300" cy="470" r="26" />
+  </g>
+  <circle cx="300" cy="580" r="26" fill="#dbeafe" stroke="#93c5fd" stroke-width="6" />
+
+  <g stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M289 360 L297 369 L312 351" />
+    <path d="M289 470 L297 479 L312 461" />
+  </g>
+
+  <!-- small dependency graph motif, bottom-right of the card -->
+  <g stroke="#2563eb" stroke-width="10" fill="#2563eb">
+    <line x1="404" y1="708" x2="470" y2="672" opacity="0.55" />
+    <line x1="404" y1="708" x2="470" y2="744" opacity="0.55" />
+    <circle cx="404" cy="708" r="22" />
+    <circle cx="470" cy="672" r="18" />
+    <circle cx="470" cy="744" r="18" />
+  </g>
+</svg>

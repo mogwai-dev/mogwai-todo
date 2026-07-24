@@ -9,6 +9,7 @@
     "beforeBuildCommand": "deno task tauri:prep"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "Todo Desktop",
