@@ -8,3 +8,8 @@ out/
 TodoDesktop/
 TodoDesktop.msi
 desktop.dll.tmp-*
+
+# Tauri build outputs
+dist/
+src-tauri/target/
+src-tauri/gen/

@@ -8,6 +8,9 @@
     "desktop:build": "deno task desktop:build:exe ; deno task desktop:build:msi",
     "desktop:run:portable": "cmd /c desktop\\run-portable.cmd out\\TodoDesktop",
     "desktop:run:portable:direct": "cmd /c desktop\\run-portable.cmd out\\TodoDesktop",
+    "tauri:prep": "deno run --allow-read --allow-write desktop/build-tauri-dist.ts",
+    "tauri:dev": "cargo tauri dev",
+    "tauri:build": "cargo tauri build",
     "check": "deno check desktop/main.ts src/domain/dateLogic.ts src/domain/holidayLogic.ts src/storage/localStore.ts"
   },
   "lock": false,

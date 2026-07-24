@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Todo Desktop",
+  "version": "0.3.0",
+  "identifier": "com.starl.todo.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "beforeDevCommand": "deno task tauri:prep",
+    "beforeBuildCommand": "deno task tauri:prep"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Todo Desktop",
+        "width": 900,
+        "height": 700,
+        "minWidth": 640,
+        "minHeight": 480,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-src 'none'; object-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
