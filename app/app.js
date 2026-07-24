@@ -32,6 +32,7 @@ import {
   toggleTodo,
   updateTodoNote,
 } from "/src/storage/localStore.js";
+import { initImpactGraph } from "/app/impactGraph.js";
 
 const TODO_VISIBLE_WORKING_DAYS = 3;
 
@@ -50,8 +51,10 @@ const refs = {
   days: document.querySelector("#days"),
   heatmap: document.querySelector("#heatmap"),
   tabTodo: document.querySelector("#tab-todo"),
+  tabImpact: document.querySelector("#tab-impact"),
   tabSettings: document.querySelector("#tab-settings"),
   viewTodo: document.querySelector("#view-todo"),
+  viewImpact: document.querySelector("#view-impact"),
   viewSettings: document.querySelector("#view-settings"),
   disableWeekend: document.querySelector("#disable-weekend"),
   disablePublic: document.querySelector("#disable-public"),
@@ -451,6 +454,19 @@ function renderSettings() {
   );
 }
 
+function setActiveTab(activeKey) {
+  const tabs = {
+    todo: [refs.tabTodo, refs.viewTodo],
+    impact: [refs.tabImpact, refs.viewImpact],
+    settings: [refs.tabSettings, refs.viewSettings],
+  };
+  for (const [key, [tabEl, viewEl]] of Object.entries(tabs)) {
+    const isActive = key === activeKey;
+    tabEl.classList.toggle("active", isActive);
+    viewEl.classList.toggle("active", isActive);
+  }
+}
+
 function refresh() {
   const moved = carryOverHeldTodos(todayIsoDate());
   if (moved > 0) {
@@ -494,19 +510,9 @@ function bindEvents() {
     saveMemo(refs.memo.value);
   });
 
-  refs.tabTodo.addEventListener("click", () => {
-    refs.tabTodo.classList.add("active");
-    refs.tabSettings.classList.remove("active");
-    refs.viewTodo.classList.add("active");
-    refs.viewSettings.classList.remove("active");
-  });
-
-  refs.tabSettings.addEventListener("click", () => {
-    refs.tabSettings.classList.add("active");
-    refs.tabTodo.classList.remove("active");
-    refs.viewSettings.classList.add("active");
-    refs.viewTodo.classList.remove("active");
-  });
+  refs.tabTodo.addEventListener("click", () => setActiveTab("todo"));
+  refs.tabImpact.addEventListener("click", () => setActiveTab("impact"));
+  refs.tabSettings.addEventListener("click", () => setActiveTab("settings"));
 
   refs.disableWeekend.addEventListener("change", () => {
     state.holidaySettings = { ...state.holidaySettings, disableWeekend: refs.disableWeekend.checked };
@@ -555,3 +561,4 @@ function initDefaults() {
 bindEvents();
 initDefaults();
 refresh();
+initImpactGraph();

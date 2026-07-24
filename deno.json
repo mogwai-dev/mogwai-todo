@@ -3,15 +3,15 @@
     "desktop:dev": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --output .deno-desktop/dev.exe desktop/main.ts",
     "desktop:dev:hmr": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --hmr --output .deno-desktop/dev-hmr.exe desktop/main.ts",
     "desktop:dev:cef": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --backend cef --output .deno-desktop/dev-cef.exe desktop/main.ts",
-    "desktop:build:exe": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --include app/index.html --include app/styles.css --include app/app.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/storage/localStore.js --output out/TodoDesktop.exe desktop/main.ts",
-    "desktop:build:msi": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --include app/index.html --include app/styles.css --include app/app.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/storage/localStore.js --output out/TodoDesktop.msi desktop/main.ts",
+    "desktop:build:exe": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --include app/index.html --include app/styles.css --include app/app.js --include app/impactGraph.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/domain/impactGraph.js --include src/storage/localStore.js --include src/storage/impactGraphStore.js --output out/TodoDesktop.exe desktop/main.ts",
+    "desktop:build:msi": "deno desktop --allow-ffi --allow-env=SystemRoot,USERNAME --include app/index.html --include app/styles.css --include app/app.js --include app/impactGraph.js --include src/domain/dateLogic.js --include src/domain/holidayLogic.js --include src/domain/impactGraph.js --include src/storage/localStore.js --include src/storage/impactGraphStore.js --output out/TodoDesktop.msi desktop/main.ts",
     "desktop:build": "deno task desktop:build:exe ; deno task desktop:build:msi",
     "desktop:run:portable": "cmd /c desktop\\run-portable.cmd out\\TodoDesktop",
     "desktop:run:portable:direct": "cmd /c desktop\\run-portable.cmd out\\TodoDesktop",
     "tauri:prep": "deno run --allow-read --allow-write desktop/build-tauri-dist.ts",
     "tauri:dev": "cargo tauri dev",
     "tauri:build": "cargo tauri build",
-    "check": "deno check desktop/main.ts src/domain/dateLogic.ts src/domain/holidayLogic.ts src/storage/localStore.ts"
+    "check": "deno check desktop/main.ts src/domain/dateLogic.ts src/domain/holidayLogic.ts src/domain/impactGraph.ts src/storage/localStore.ts src/storage/impactGraphStore.ts"
   },
   "lock": false,
   "imports": {},

@@ -290,3 +290,276 @@ button.mini {
   .todo-hold { order: 2; }
   .contribution-heading { flex-direction: row; align-items: start; }
 }
+
+/* --- Impact management (影響管理) --- */
+
+.impact-mode-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.impact-sheets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.impact-sheet-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.impact-sheet-actions input {
+  flex: 1;
+  max-width: 260px;
+}
+
+.impact-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: .9rem;
+}
+
+.impact-breadcrumb-item {
+  border: none;
+  background: none;
+  color: #2563eb;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.impact-breadcrumb-item:disabled {
+  color: #111827;
+  font-weight: 600;
+  cursor: default;
+  opacity: 1;
+}
+
+.impact-breadcrumb-sep {
+  color: #94a3b8;
+}
+
+.impact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.impact-canvas-wrap {
+  border: 1px solid #dbe4ef;
+  border-radius: 6px;
+  background: #fff;
+  padding: 10px;
+}
+
+.impact-svg {
+  width: 100%;
+  height: 480px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  touch-action: none;
+}
+
+.impact-direction {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: .88rem;
+  color: #334155;
+}
+
+.impact-node circle {
+  fill: #eff6ff;
+  stroke: #93c5fd;
+  stroke-width: 2;
+}
+
+.impact-node.highlight circle {
+  fill: #fef3c7;
+  stroke: #f59e0b;
+}
+
+.impact-node.selected circle {
+  stroke: #1d4ed8;
+  stroke-width: 3;
+}
+
+.impact-node-label {
+  text-anchor: middle;
+  font-size: 11px;
+  fill: #1f2937;
+}
+
+.impact-node-badge {
+  text-anchor: middle;
+  font-size: 9px;
+  fill: #64748b;
+}
+
+.impact-edge line {
+  stroke: #94a3b8;
+  stroke-width: 1.6;
+}
+
+.impact-edge.highlight line {
+  stroke: #f59e0b;
+  stroke-width: 2.4;
+}
+
+.impact-edge-label-bg {
+  fill: #ffffff;
+  opacity: .85;
+}
+
+.impact-edge-label {
+  text-anchor: middle;
+  font-size: 10px;
+  fill: #475569;
+}
+
+.impact-side {
+  display: grid;
+  gap: 12px;
+}
+
+.impact-form {
+  border: 1px solid #dbe4ef;
+  border-radius: 6px;
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.impact-form input, .impact-form textarea, .impact-form select {
+  width: 100%;
+}
+
+.impact-edge-endpoints {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.impact-edge-endpoints select {
+  flex: 1;
+}
+
+.impact-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.impact-list-panel {
+  border: 1px solid #dbe4ef;
+  border-radius: 6px;
+  background: #fff;
+  padding: 10px;
+}
+
+.impact-list-panel input {
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.impact-item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.impact-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.impact-item-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.impact-item-label {
+  border: none;
+  background: none;
+  color: #1f2937;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px;
+  width: 100%;
+  font-size: .86rem;
+}
+
+.impact-item-label:hover {
+  background: #f1f5f9;
+}
+
+.impact-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.impact-diff-output {
+  margin: 6px 0 0;
+  padding: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: .8rem;
+  white-space: pre-wrap;
+}
+
+.impact-panel {
+  margin-top: 16px;
+  border: 1px solid #dbe4ef;
+  border-radius: 6px;
+  background: #fff;
+  padding: 10px 14px;
+}
+
+.impact-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #111827;
+}
+
+.impact-panel-body {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.impact-export-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.impact-status {
+  min-height: 1.2em;
+  color: #b91c1c;
+  font-size: .9rem;
+  margin-top: 10px;
+}
+
+@media (max-width: 860px) {
+  .impact-layout {
+    grid-template-columns: 1fr;
+  }
+}
+

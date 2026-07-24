@@ -39,6 +39,7 @@
       <section class="workspace">
         <div class="tabs" role="tablist" aria-label="Todo view">
           <button id="tab-todo" type="button" class="tab active" role="tab">Todo</button>
+          <button id="tab-impact" type="button" class="tab" role="tab">影響管理</button>
           <button id="tab-settings" type="button" class="tab" role="tab">休日・表示設定</button>
         </div>
 
@@ -72,6 +73,121 @@
               <span>低</span><span class="dot l0"></span><span class="dot l1"></span>
               <span class="dot l2"></span><span class="dot l3"></span><span>高</span>
             </div>
+          </section>
+        </div>
+
+        <div id="view-impact" class="view" role="tabpanel">
+          <section class="impact-section">
+            <div class="section-heading">
+              <div>
+                <h2>影響管理</h2>
+                <p class="muted">ノードと関係でシステムやタスクの影響範囲を可視化・編集できます。</p>
+              </div>
+              <div class="impact-mode-toggle" role="group" aria-label="モード">
+                <button id="impact-mode-visualize" type="button" class="tab active">可視化</button>
+                <button id="impact-mode-edit" type="button" class="tab">編集</button>
+              </div>
+            </div>
+
+            <div class="impact-sheets" id="impact-sheet-tabs" role="tablist" aria-label="シート"></div>
+            <div class="impact-sheet-actions">
+              <input id="impact-sheet-name-input" type="text" placeholder="新しいシート名" />
+              <button id="impact-sheet-add" type="button" class="outline">シート追加</button>
+              <button id="impact-sheet-rename" type="button" class="outline">シート名変更</button>
+              <button id="impact-sheet-delete" type="button" class="outline">シート削除</button>
+            </div>
+
+            <nav class="impact-breadcrumb" id="impact-breadcrumb" aria-label="階層"></nav>
+
+            <div class="impact-layout">
+              <div class="impact-canvas-wrap">
+                <svg id="impact-svg" class="impact-svg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet"></svg>
+                <p class="muted helper">ノードをクリックすると影響範囲がハイライトされます。ダブルクリックで中に入ります。編集モードではドラッグで位置を調整できます。</p>
+                <div class="impact-direction" role="group" aria-label="影響方向">
+                  <label><input type="radio" name="impact-direction" value="downstream" checked /> 下流</label>
+                  <label><input type="radio" name="impact-direction" value="upstream" /> 上流</label>
+                  <label><input type="radio" name="impact-direction" value="both" /> 両方</label>
+                </div>
+              </div>
+
+              <div class="impact-side">
+                <div id="impact-node-form" class="impact-form">
+                  <h3>ノード</h3>
+                  <input id="impact-node-name" type="text" placeholder="ノード名" />
+                  <textarea id="impact-node-description" rows="2" placeholder="説明"></textarea>
+                  <div class="impact-form-actions">
+                    <button id="impact-node-save" type="button">保存</button>
+                    <button id="impact-node-add-child" type="button" class="outline">子ノード追加</button>
+                    <button id="impact-node-delete" type="button" class="outline">削除</button>
+                    <button id="impact-node-cancel" type="button" class="outline">キャンセル</button>
+                  </div>
+                </div>
+
+                <div id="impact-edge-form" class="impact-form">
+                  <h3>関係</h3>
+                  <div class="impact-edge-endpoints">
+                    <select id="impact-edge-source"></select>
+                    <span>→</span>
+                    <select id="impact-edge-target"></select>
+                  </div>
+                  <input id="impact-edge-name" type="text" placeholder="関係名" />
+                  <textarea id="impact-edge-description" rows="2" placeholder="説明"></textarea>
+                  <div class="impact-form-actions">
+                    <button id="impact-edge-save" type="button">保存</button>
+                    <button id="impact-edge-delete" type="button" class="outline">削除</button>
+                    <button id="impact-edge-cancel" type="button" class="outline">キャンセル</button>
+                  </div>
+                </div>
+
+                <div class="impact-list-panel">
+                  <h3>ノード一覧</h3>
+                  <input id="impact-node-search" type="text" placeholder="検索" />
+                  <ul id="impact-node-list" class="impact-item-list"></ul>
+                </div>
+
+                <div class="impact-list-panel">
+                  <h3>関係一覧</h3>
+                  <ul id="impact-edge-list" class="impact-item-list"></ul>
+                </div>
+              </div>
+            </div>
+
+            <details class="impact-panel">
+              <summary>スナップショット</summary>
+              <div class="impact-panel-body">
+                <div class="inline-form">
+                  <input id="impact-snapshot-message" type="text" placeholder="メッセージ" />
+                  <button id="impact-snapshot-create" type="button">保存</button>
+                </div>
+                <ul id="impact-snapshot-list" class="impact-item-list"></ul>
+              </div>
+            </details>
+
+            <details class="impact-panel">
+              <summary>インポート / エクスポート</summary>
+              <div class="impact-panel-body">
+                <p class="muted helper">全体を書き出し:</p>
+                <div class="impact-export-actions">
+                  <button id="impact-export-json" type="button" class="outline">JSON</button>
+                  <button id="impact-export-yaml" type="button" class="outline">YAML</button>
+                  <button id="impact-export-toml" type="button" class="outline">TOML</button>
+                  <button id="impact-export-csv" type="button" class="outline">CSV</button>
+                </div>
+                <p class="muted helper">選択ノードの影響範囲を書き出し:</p>
+                <div class="impact-export-actions">
+                  <button id="impact-export-range-json" type="button" class="outline">JSON</button>
+                  <button id="impact-export-range-yaml" type="button" class="outline">YAML</button>
+                  <button id="impact-export-range-toml" type="button" class="outline">TOML</button>
+                  <button id="impact-export-range-csv" type="button" class="outline">CSV</button>
+                </div>
+                <h3>インポート</h3>
+                <textarea id="impact-import-text" rows="6" placeholder="JSONを貼り付け"></textarea>
+                <button id="impact-import-run" type="button">インポート実行（現在のデータは自動保存されます）</button>
+                <div id="impact-import-warnings" class="muted"></div>
+              </div>
+            </details>
+
+            <p id="impact-status" class="impact-status" aria-live="polite"></p>
           </section>
         </div>
 
