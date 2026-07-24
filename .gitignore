@@ -1,12 +1,16 @@
 .vscode
 .DS_Store
 *.log
+.deno/
 
 # Deno Desktop build outputs
 .deno-desktop/
 out/
+out_compress/
 TodoDesktop/
 TodoDesktop.msi
+TodoDesktop.dll
+desktop.dll
 desktop.dll.tmp-*
 
 # Tauri build outputs
