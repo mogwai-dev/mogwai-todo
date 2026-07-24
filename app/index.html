@@ -7,7 +7,13 @@
     <link rel="stylesheet" href="/app/styles.css" />
   </head>
   <body>
-    <main class="page-shell">
+    <nav class="app-tabbar" role="tablist" aria-label="アプリ切り替え">
+      <button id="tab-todo" type="button" class="tab active" role="tab">Todo</button>
+      <button id="tab-impact" type="button" class="tab" role="tab">影響管理</button>
+      <button id="tab-settings" type="button" class="tab" role="tab">休日・表示設定</button>
+    </nav>
+
+    <main id="view-todo" class="page-shell view active" role="tabpanel">
       <header class="page-header">
         <p class="eyebrow">Local-first desktop app</p>
         <h1>Todo</h1>
@@ -36,48 +42,40 @@
         <pre id="summary-output" class="summary-output"></pre>
       </section>
 
-      <section class="workspace">
-        <div class="tabs" role="tablist" aria-label="Todo view">
-          <button id="tab-todo" type="button" class="tab active" role="tab">Todo</button>
-          <button id="tab-impact" type="button" class="tab" role="tab">影響管理</button>
-          <button id="tab-settings" type="button" class="tab" role="tab">休日・表示設定</button>
+      <section class="memo-section">
+        <h2>メモ</h2>
+        <textarea id="memo" rows="5" placeholder="共通メモ"></textarea>
+        <p class="muted helper">入力内容はこの端末のブラウザストレージへ自動保存されます。</p>
+      </section>
+
+      <section class="todo-section">
+        <div class="section-heading">
+          <div>
+            <h2>Todo</h2>
+            <p class="muted">選択日と直近2営業日を表示します。編集は今日と昨日のみ可能です。</p>
+          </div>
         </div>
+        <div id="days"></div>
+      </section>
 
-        <div id="view-todo" class="view active" role="tabpanel">
-          <section class="memo-section">
-            <h2>メモ</h2>
-            <textarea id="memo" rows="5" placeholder="共通メモ"></textarea>
-            <p class="muted helper">入力内容はこの端末のブラウザストレージへ自動保存されます。</p>
-          </section>
-
-          <section class="todo-section">
-            <div class="section-heading">
-              <div>
-                <h2>Todo</h2>
-                <p class="muted">選択日と直近2営業日を表示します。編集は今日と昨日のみ可能です。</p>
-              </div>
-            </div>
-            <div id="days"></div>
-          </section>
-
-          <section class="contribution-section">
-            <div class="section-heading contribution-heading">
-              <div>
-                <h2>コントリビューション</h2>
-                <p class="muted">過去26週間の完了率です。</p>
-              </div>
-              <span id="engine-label">TypeScript Logic</span>
-            </div>
-            <div id="heatmap"></div>
-            <div class="legend" aria-label="完了率の凡例">
-              <span>低</span><span class="dot l0"></span><span class="dot l1"></span>
-              <span class="dot l2"></span><span class="dot l3"></span><span>高</span>
-            </div>
-          </section>
+      <section class="contribution-section">
+        <div class="section-heading contribution-heading">
+          <div>
+            <h2>コントリビューション</h2>
+            <p class="muted">過去26週間の完了率です。</p>
+          </div>
+          <span id="engine-label">TypeScript Logic</span>
         </div>
+        <div id="heatmap"></div>
+        <div class="legend" aria-label="完了率の凡例">
+          <span>低</span><span class="dot l0"></span><span class="dot l1"></span>
+          <span class="dot l2"></span><span class="dot l3"></span><span>高</span>
+        </div>
+      </section>
+    </main>
 
-        <div id="view-impact" class="view" role="tabpanel">
-          <section class="impact-section">
+    <main id="view-impact" class="view impact-page" role="tabpanel">
+      <section class="impact-section">
             <div class="section-heading">
               <div>
                 <h2>影響管理</h2>
@@ -99,73 +97,80 @@
 
             <nav class="impact-breadcrumb" id="impact-breadcrumb" aria-label="階層"></nav>
 
-            <div class="impact-layout">
-              <div class="impact-canvas-wrap">
-                <svg id="impact-svg" class="impact-svg" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid meet"></svg>
-                <p class="muted helper">ノードをクリックすると影響範囲がハイライトされます。ダブルクリックで中に入ります。編集モードではドラッグで位置を調整できます。</p>
-                <div class="impact-direction" role="group" aria-label="影響方向">
-                  <label><input type="radio" name="impact-direction" value="downstream" checked /> 下流</label>
-                  <label><input type="radio" name="impact-direction" value="upstream" /> 上流</label>
-                  <label><input type="radio" name="impact-direction" value="both" /> 両方</label>
-                </div>
-              </div>
-
-              <div class="impact-side">
-                <div id="impact-node-form" class="impact-form">
-                  <h3>ノード</h3>
-                  <input id="impact-node-name" type="text" placeholder="ノード名" />
-                  <textarea id="impact-node-description" rows="2" placeholder="説明"></textarea>
-                  <div class="impact-form-actions">
-                    <button id="impact-node-save" type="button">保存</button>
-                    <button id="impact-node-add-child" type="button" class="outline">子ノード追加</button>
-                    <button id="impact-node-delete" type="button" class="outline">削除</button>
-                    <button id="impact-node-cancel" type="button" class="outline">キャンセル</button>
-                  </div>
-                </div>
-
-                <div id="impact-edge-form" class="impact-form">
-                  <h3>関係</h3>
-                  <div class="impact-edge-endpoints">
-                    <select id="impact-edge-source"></select>
-                    <span>→</span>
-                    <select id="impact-edge-target"></select>
-                  </div>
-                  <input id="impact-edge-name" type="text" placeholder="関係名" />
-                  <textarea id="impact-edge-description" rows="2" placeholder="説明"></textarea>
-                  <div class="impact-form-actions">
-                    <button id="impact-edge-save" type="button">保存</button>
-                    <button id="impact-edge-delete" type="button" class="outline">削除</button>
-                    <button id="impact-edge-cancel" type="button" class="outline">キャンセル</button>
-                  </div>
-                </div>
-
-                <div class="impact-list-panel">
-                  <h3>ノード一覧</h3>
-                  <input id="impact-node-search" type="text" placeholder="検索" />
-                  <ul id="impact-node-list" class="impact-item-list"></ul>
-                </div>
-
-                <div class="impact-list-panel">
-                  <h3>関係一覧</h3>
-                  <ul id="impact-edge-list" class="impact-item-list"></ul>
-                </div>
+            <div class="impact-canvas-wrap">
+              <svg id="impact-svg" class="impact-svg" viewBox="0 0 1400 700" preserveAspectRatio="xMidYMid meet"></svg>
+              <p class="muted helper">ノードをクリックすると影響範囲がハイライトされます。ダブルクリックで中に入ります。編集モードではドラッグで位置を調整できます。</p>
+              <div class="impact-direction" role="group" aria-label="影響方向">
+                <label><input type="radio" name="impact-direction" value="downstream" checked /> 下流</label>
+                <label><input type="radio" name="impact-direction" value="upstream" /> 上流</label>
+                <label><input type="radio" name="impact-direction" value="both" /> 両方</label>
               </div>
             </div>
 
-            <details class="impact-panel">
-              <summary>スナップショット</summary>
-              <div class="impact-panel-body">
+            <div class="impact-editor">
+              <nav class="impact-editor-tabs" role="tablist" aria-label="編集パネル">
+                <button id="impact-editor-tab-node" type="button" class="tab active">ノード</button>
+                <button id="impact-editor-tab-edge" type="button" class="tab">関係</button>
+                <button id="impact-editor-tab-snapshot" type="button" class="tab">スナップショット</button>
+                <button id="impact-editor-tab-io" type="button" class="tab">インポート / エクスポート</button>
+              </nav>
+
+              <div id="impact-editor-panel-node" class="impact-editor-panel active" role="tabpanel">
+                <div class="impact-editor-panel-grid">
+                  <div id="impact-node-form" class="impact-form">
+                    <h3>ノード</h3>
+                    <input id="impact-node-name" type="text" placeholder="ノード名" />
+                    <textarea id="impact-node-description" rows="2" placeholder="説明"></textarea>
+                    <div class="impact-form-actions">
+                      <button id="impact-node-save" type="button">保存</button>
+                      <button id="impact-node-add-child" type="button" class="outline">子ノード追加</button>
+                      <button id="impact-node-delete" type="button" class="outline">削除</button>
+                      <button id="impact-node-cancel" type="button" class="outline">キャンセル</button>
+                    </div>
+                  </div>
+
+                  <div class="impact-list-panel">
+                    <h3>ノード一覧</h3>
+                    <input id="impact-node-search" type="text" placeholder="検索" />
+                    <ul id="impact-node-list" class="impact-item-list"></ul>
+                  </div>
+                </div>
+              </div>
+
+              <div id="impact-editor-panel-edge" class="impact-editor-panel" role="tabpanel">
+                <div class="impact-editor-panel-grid">
+                  <div id="impact-edge-form" class="impact-form">
+                    <h3>関係</h3>
+                    <div class="impact-edge-endpoints">
+                      <select id="impact-edge-source"></select>
+                      <span>→</span>
+                      <select id="impact-edge-target"></select>
+                    </div>
+                    <input id="impact-edge-name" type="text" placeholder="関係名" />
+                    <textarea id="impact-edge-description" rows="2" placeholder="説明"></textarea>
+                    <div class="impact-form-actions">
+                      <button id="impact-edge-save" type="button">保存</button>
+                      <button id="impact-edge-delete" type="button" class="outline">削除</button>
+                      <button id="impact-edge-cancel" type="button" class="outline">キャンセル</button>
+                    </div>
+                  </div>
+
+                  <div class="impact-list-panel">
+                    <h3>関係一覧</h3>
+                    <ul id="impact-edge-list" class="impact-item-list"></ul>
+                  </div>
+                </div>
+              </div>
+
+              <div id="impact-editor-panel-snapshot" class="impact-editor-panel" role="tabpanel">
                 <div class="inline-form">
                   <input id="impact-snapshot-message" type="text" placeholder="メッセージ" />
                   <button id="impact-snapshot-create" type="button">保存</button>
                 </div>
                 <ul id="impact-snapshot-list" class="impact-item-list"></ul>
               </div>
-            </details>
 
-            <details class="impact-panel">
-              <summary>インポート / エクスポート</summary>
-              <div class="impact-panel-body">
+              <div id="impact-editor-panel-io" class="impact-editor-panel" role="tabpanel">
                 <p class="muted helper">全体を書き出し:</p>
                 <div class="impact-export-actions">
                   <button id="impact-export-json" type="button" class="outline">JSON</button>
@@ -185,14 +190,14 @@
                 <button id="impact-import-run" type="button">インポート実行（現在のデータは自動保存されます）</button>
                 <div id="impact-import-warnings" class="muted"></div>
               </div>
-            </details>
+            </div>
 
-            <p id="impact-status" class="impact-status" aria-live="polite"></p>
-          </section>
-        </div>
+      <p id="impact-status" class="impact-status" aria-live="polite"></p>
+      </section>
+    </main>
 
-        <div id="view-settings" class="view" role="tabpanel">
-          <section class="settings-section">
+    <main id="view-settings" class="page-shell view" role="tabpanel">
+      <section class="settings-section">
             <h2>休日・表示設定</h2>
             <p class="muted">除外された日はコントリビューション上でグレー表示されます。</p>
             <fieldset class="rule-list">
@@ -228,8 +233,6 @@
                 <ul id="forced-working-list" class="date-list"></ul>
               </div>
             </div>
-          </section>
-        </div>
       </section>
     </main>
 

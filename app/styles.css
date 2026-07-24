@@ -33,11 +33,11 @@ button:disabled { cursor: not-allowed; opacity: .52; }
 button.outline, .tab { border-color: #cbd5e1; background: #fff; color: #334155; }
 button.outline:hover, .tab:hover { background: #f1f5f9; }
 
-.workspace { border-top: 1px solid #e2e8f0; padding-top: 18px; }
-.tabs { display: flex; gap: 6px; margin-bottom: 22px; }
+.app-tabbar { display: flex; gap: 6px; padding: 12px 16px; background: #fff; border-bottom: 1px solid #e2e8f0; }
 .tab.active { border-color: #1e40af; background: #1e40af; color: #fff; }
 .view { display: none; }
 .view.active { display: block; }
+.impact-page { width: 100%; margin: 0; padding: 18px 16px 40px; }
 .memo-section, .todo-section, .contribution-section, .settings-section { margin-bottom: 28px; }
 .memo-section h2, .todo-section h2, .contribution-section h2 { margin-bottom: 9px; }
 .helper { margin: 6px 0 0; font-size: .82rem; }
@@ -344,23 +344,17 @@ button.mini {
   color: #94a3b8;
 }
 
-.impact-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 16px;
-  align-items: start;
-}
-
 .impact-canvas-wrap {
   border: 1px solid #dbe4ef;
   border-radius: 6px;
   background: #fff;
   padding: 10px;
+  width: 100%;
 }
 
 .impact-svg {
   width: 100%;
-  height: 480px;
+  height: min(65vh, 720px);
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
@@ -375,25 +369,45 @@ button.mini {
   color: #334155;
 }
 
-.impact-node circle {
+.impact-node rect {
   fill: #eff6ff;
   stroke: #93c5fd;
   stroke-width: 2;
 }
 
-.impact-node.highlight circle {
+.impact-node.highlight rect {
   fill: #fef3c7;
   stroke: #f59e0b;
 }
 
-.impact-node.selected circle {
+.impact-node.selected rect {
   stroke: #1d4ed8;
   stroke-width: 3;
 }
 
+.impact-node.external rect {
+  fill: #f1f5f9;
+  stroke: #94a3b8;
+  stroke-dasharray: 4 3;
+}
+
+.impact-node.external.highlight rect {
+  fill: #fef3c7;
+  stroke: #f59e0b;
+}
+
+.impact-node.external .impact-node-label {
+  fill: #475569;
+  font-style: italic;
+}
+
+.impact-node.external {
+  cursor: pointer;
+}
+
 .impact-node-label {
   text-anchor: middle;
-  font-size: 11px;
+  font-size: 12px;
   fill: #1f2937;
 }
 
@@ -413,6 +427,10 @@ button.mini {
   stroke-width: 2.4;
 }
 
+.impact-edge.external line {
+  stroke-dasharray: 5 4;
+}
+
 .impact-edge-label-bg {
   fill: #ffffff;
   opacity: .85;
@@ -424,9 +442,37 @@ button.mini {
   fill: #475569;
 }
 
-.impact-side {
+.impact-editor {
+  margin-top: 16px;
+  border: 1px solid #dbe4ef;
+  border-radius: 6px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.impact-editor-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.impact-editor-panel {
+  display: none;
+  padding: 14px;
+}
+
+.impact-editor-panel.active {
   display: grid;
-  gap: 12px;
+  gap: 10px;
+}
+
+.impact-editor-panel-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px) 1fr;
+  gap: 16px;
+  align-items: start;
 }
 
 .impact-form {
@@ -524,26 +570,6 @@ button.mini {
   white-space: pre-wrap;
 }
 
-.impact-panel {
-  margin-top: 16px;
-  border: 1px solid #dbe4ef;
-  border-radius: 6px;
-  background: #fff;
-  padding: 10px 14px;
-}
-
-.impact-panel summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: #111827;
-}
-
-.impact-panel-body {
-  margin-top: 10px;
-  display: grid;
-  gap: 8px;
-}
-
 .impact-export-actions {
   display: flex;
   gap: 6px;
@@ -558,7 +584,7 @@ button.mini {
 }
 
 @media (max-width: 860px) {
-  .impact-layout {
+  .impact-editor-panel-grid {
     grid-template-columns: 1fr;
   }
 }

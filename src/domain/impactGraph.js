@@ -100,6 +100,41 @@ export function buildAggregatedEdges(nodes, edges, focusNodeId) {
     }
     return [...groups.values()];
 }
+/**
+ * Finds edges where only one endpoint resolves to a node visible in the current
+ * scene (see sceneOwnerOf) - i.e. the other endpoint lives in a different branch
+ * of the hierarchy (a different document, or an ancestor of the current focus)
+ * and would otherwise disappear entirely. Returns one aggregated "external link"
+ * per (scene owner, real external node, direction) so the nearest connection is
+ * always visible, without needing to fully resolve or render where the external
+ * node actually lives in the hierarchy.
+ */
+export function buildExternalLinks(nodes, edges, focusNodeId) {
+    const byId = nodeById(nodes);
+    const groups = new Map();
+    for (const edge of edges) {
+        const ownerSourceId = sceneOwnerOf(nodes, focusNodeId, edge.sourceId);
+        const ownerTargetId = sceneOwnerOf(nodes, focusNodeId, edge.targetId);
+        if (Boolean(ownerSourceId) === Boolean(ownerTargetId)) {
+            continue;
+        }
+        const direction = ownerSourceId ? "outgoing" : "incoming";
+        const sceneOwnerId = (ownerSourceId ?? ownerTargetId);
+        const externalNodeId = ownerSourceId ? edge.targetId : edge.sourceId;
+        if (!byId.has(externalNodeId)) {
+            continue;
+        }
+        const key = `${direction}:${sceneOwnerId}->${externalNodeId}`;
+        const existing = groups.get(key);
+        if (existing) {
+            existing.edges.push(edge);
+        }
+        else {
+            groups.set(key, { sceneOwnerId, externalNodeId, direction, edges: [edge] });
+        }
+    }
+    return [...groups.values()];
+}
 export function getDescendantIds(nodes, nodeId) {
     const childrenByParent = new Map();
     for (const node of nodes) {
@@ -173,6 +208,7 @@ export function computeImpactHighlight(nodes, edges, aggregatedEdges, focusNodeI
         selectedOwnerId: sceneOwnerOf(nodes, focusNodeId, selectedNodeId),
         highlightedOwnerIds,
         highlightedEdgeKeys,
+        visitedIds: visited,
     };
 }
 /** Extracts the subgraph reachable from selectedNodeId (used for impact-range export). */

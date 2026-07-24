@@ -174,6 +174,64 @@ export function buildAggregatedEdges(
   return [...groups.values()];
 }
 
+export type ExternalLinkDirection = "outgoing" | "incoming";
+
+export type ExternalLink = {
+  /** The node id that IS visible in the current scene (a scene-owner). */
+  sceneOwnerId: string;
+  /** The real node id that lives outside the current scene (not directly rendered here). */
+  externalNodeId: string;
+  /** "outgoing": sceneOwner -> externalNode. "incoming": externalNode -> sceneOwner. */
+  direction: ExternalLinkDirection;
+  edges: ImpactEdge[];
+};
+
+/**
+ * Finds edges where only one endpoint resolves to a node visible in the current
+ * scene (see sceneOwnerOf) - i.e. the other endpoint lives in a different branch
+ * of the hierarchy (a different document, or an ancestor of the current focus)
+ * and would otherwise disappear entirely. Returns one aggregated "external link"
+ * per (scene owner, real external node, direction) so the nearest connection is
+ * always visible, without needing to fully resolve or render where the external
+ * node actually lives in the hierarchy.
+ */
+export function buildExternalLinks(
+  nodes: ImpactNode[],
+  edges: ImpactEdge[],
+  focusNodeId: string | null,
+): ExternalLink[] {
+  const byId = nodeById(nodes);
+  const groups = new Map<string, ExternalLink>();
+
+  for (const edge of edges) {
+    const ownerSourceId = sceneOwnerOf(nodes, focusNodeId, edge.sourceId);
+    const ownerTargetId = sceneOwnerOf(nodes, focusNodeId, edge.targetId);
+
+    if (Boolean(ownerSourceId) === Boolean(ownerTargetId)) {
+      // Both resolve (already a normal in-scene edge) or neither resolves
+      // (unrelated to the current scene) - nothing extra to show.
+      continue;
+    }
+
+    const direction: ExternalLinkDirection = ownerSourceId ? "outgoing" : "incoming";
+    const sceneOwnerId = (ownerSourceId ?? ownerTargetId)!;
+    const externalNodeId = ownerSourceId ? edge.targetId : edge.sourceId;
+    if (!byId.has(externalNodeId)) {
+      continue;
+    }
+
+    const key = `${direction}:${sceneOwnerId}->${externalNodeId}`;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.edges.push(edge);
+    } else {
+      groups.set(key, { sceneOwnerId, externalNodeId, direction, edges: [edge] });
+    }
+  }
+
+  return [...groups.values()];
+}
+
 export function getDescendantIds(nodes: ImpactNode[], nodeId: string): Set<string> {
   const childrenByParent = new Map<string, ImpactNode[]>();
   for (const node of nodes) {
@@ -233,6 +291,8 @@ export type ImpactHighlight = {
   selectedOwnerId: string | undefined;
   highlightedOwnerIds: Set<string>;
   highlightedEdgeKeys: Set<string>;
+  /** Raw reachable node ids (regardless of scene), used to also highlight external links. */
+  visitedIds: Set<string>;
 };
 
 export function computeImpactHighlight(
@@ -274,6 +334,7 @@ export function computeImpactHighlight(
     selectedOwnerId: sceneOwnerOf(nodes, focusNodeId, selectedNodeId),
     highlightedOwnerIds,
     highlightedEdgeKeys,
+    visitedIds: visited,
   };
 }
 

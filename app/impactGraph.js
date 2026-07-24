@@ -1,5 +1,6 @@
 import {
   buildAggregatedEdges,
+  buildExternalLinks,
   computeImpactHighlight,
   fullPathLabel,
   getAncestorPath,
@@ -28,7 +29,14 @@ import {
 } from "/src/storage/impactGraphStore.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const NODE_RADIUS = 30;
+const EDITOR_TABS = ["node", "edge", "snapshot", "io"];
+const NODE_HEIGHT = 40;
+const NODE_MIN_WIDTH = 64;
+const NODE_MAX_WIDTH = 160;
+const NODE_CHAR_WIDTH = 13;
+const NODE_PADDING_X = 20;
+const EXTERNAL_GAP = 70;
+const EXTERNAL_STACK_GAP = 56;
 
 const state = {
   nodes: [],
@@ -95,7 +103,7 @@ function layoutPositions(nodesInScene) {
   missing.forEach((node, index) => {
     const col = index % cols;
     const row = Math.floor(index / cols);
-    positions.set(node.id, { x: 110 + col * 170, y: 90 + row * 130 });
+    positions.set(node.id, { x: 130 + col * 200, y: 90 + row * 140 });
   });
   return positions;
 }
@@ -110,6 +118,35 @@ function clientToSvgPoint(clientX, clientY) {
     x: viewBox.x + (clientX - rect.left) * (viewBox.width / rect.width),
     y: viewBox.y + (clientY - rect.top) * (viewBox.height / rect.height),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Node box geometry (rounded-rect nodes sized to fit their label, instead of
+// fixed-radius circles that clip long Japanese names).
+// ---------------------------------------------------------------------------
+
+function fitNodeLabel(name) {
+  const maxChars = Math.max(2, Math.floor((NODE_MAX_WIDTH - NODE_PADDING_X) / NODE_CHAR_WIDTH));
+  if (name.length <= maxChars) {
+    return name;
+  }
+  return `${name.slice(0, maxChars - 1)}…`;
+}
+
+function nodeBoxWidth(label) {
+  const width = label.length * NODE_CHAR_WIDTH + NODE_PADDING_X;
+  return Math.min(NODE_MAX_WIDTH, Math.max(NODE_MIN_WIDTH, width));
+}
+
+/** Point where the ray from a box's center towards (dx,dy) exits the box's border. */
+function boxBoundaryPoint(center, halfW, halfH, dx, dy) {
+  if (dx === 0 && dy === 0) {
+    return { x: center.x, y: center.y };
+  }
+  const tx = dx !== 0 ? halfW / Math.abs(dx) : Infinity;
+  const ty = dy !== 0 ? halfH / Math.abs(dy) : Infinity;
+  const t = Math.min(tx, ty);
+  return { x: center.x + dx * t, y: center.y + dy * t };
 }
 
 // ---------------------------------------------------------------------------
@@ -295,6 +332,7 @@ function renderCanvas() {
 
   const scene = sceneNodes(state.nodes, state.focusNodeId, state.activeSheetId);
   const aggregatedEdges = buildAggregatedEdges(state.nodes, state.edges, state.focusNodeId);
+  const externalLinks = buildExternalLinks(state.nodes, state.edges, state.focusNodeId);
   const positions = layoutPositions(scene);
 
   let highlight = null;
@@ -309,41 +347,54 @@ function renderCanvas() {
     );
   }
 
+  // Boxes for real, in-scene nodes.
+  const boxes = new Map();
+  for (const node of scene) {
+    const pos = positions.get(node.id);
+    if (!pos) {
+      continue;
+    }
+    const label = fitNodeLabel(node.name);
+    const width = nodeBoxWidth(label);
+    boxes.set(node.id, { x: pos.x, y: pos.y, halfW: width / 2, halfH: NODE_HEIGHT / 2, label });
+  }
+
+  // Boxes for pseudo "external" nodes, positioned just outside their scene owner
+  // so that at least one hop toward a different document/hierarchy level is
+  // always visible, even though the external node itself isn't part of this scene.
+  const externalBoxes = new Map();
+  const stackIndex = new Map();
+  for (const [index, link] of externalLinks.entries()) {
+    const ownerBox = boxes.get(link.sceneOwnerId);
+    if (!ownerBox) {
+      continue;
+    }
+    const stackKey = `${link.sceneOwnerId}:${link.direction}`;
+    const stack = stackIndex.get(stackKey) ?? 0;
+    stackIndex.set(stackKey, stack + 1);
+
+    const arrow = link.direction === "outgoing" ? "→ " : "← ";
+    const label = fitNodeLabel(`${arrow}${fullPathLabel(state.nodes, link.externalNodeId)}`);
+    const width = nodeBoxWidth(label);
+    const dirSign = link.direction === "outgoing" ? 1 : -1;
+    const x = ownerBox.x + dirSign * (ownerBox.halfW + width / 2 + EXTERNAL_GAP);
+    const y = ownerBox.y + stack * EXTERNAL_STACK_GAP;
+    const key = `ext-${index}`;
+    externalBoxes.set(key, { x, y, halfW: width / 2, halfH: NODE_HEIGHT / 2, label, link });
+  }
+
   const edgeLayer = svgEl("g", { class: "impact-edge-layer" });
+
   for (const agg of aggregatedEdges) {
-    const from = positions.get(agg.ownerSourceId);
-    const to = positions.get(agg.ownerTargetId);
+    const from = boxes.get(agg.ownerSourceId);
+    const to = boxes.get(agg.ownerTargetId);
     if (!from || !to) {
       continue;
     }
     const key = `${agg.ownerSourceId}->${agg.ownerTargetId}`;
     const isHighlighted = highlight?.highlightedEdgeKeys.has(key) ?? false;
-
-    const group = svgEl("g", { class: `impact-edge${isHighlighted ? " highlight" : ""}` });
-    const line = svgEl("line", {
-      x1: from.x,
-      y1: from.y,
-      x2: to.x,
-      y2: to.y,
-      "marker-end": "url(#impact-arrow)",
-    });
-    group.append(line);
-
-    const midX = (from.x + to.x) / 2;
-    const midY = (from.y + to.y) / 2;
     const label = agg.edges.length > 1 ? `${agg.edges[0].name} 他${agg.edges.length}件` : agg.edges[0].name;
-    const labelBg = svgEl("rect", {
-      x: midX - (label.length * 3.6),
-      y: midY - 9,
-      width: label.length * 7.2,
-      height: 16,
-      rx: 3,
-      class: "impact-edge-label-bg",
-    });
-    const text = svgEl("text", { x: midX, y: midY + 3, class: "impact-edge-label" });
-    text.textContent = label;
-    group.append(labelBg, text);
-
+    const group = renderEdgeLine(from, to, label, isHighlighted, false);
     group.style.cursor = "pointer";
     group.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -351,12 +402,26 @@ function renderCanvas() {
     });
     edgeLayer.append(group);
   }
+
+  for (const externalBox of externalBoxes.values()) {
+    const { link } = externalBox;
+    const ownerBox = boxes.get(link.sceneOwnerId);
+    if (!ownerBox) {
+      continue;
+    }
+    const from = link.direction === "outgoing" ? ownerBox : externalBox;
+    const to = link.direction === "outgoing" ? externalBox : ownerBox;
+    const isHighlighted = highlight?.visitedIds.has(link.externalNodeId) ?? false;
+    const label = link.edges.length > 1 ? `${link.edges[0].name} 他${link.edges.length}件` : link.edges[0].name;
+    const group = renderEdgeLine(from, to, label, isHighlighted, true);
+    edgeLayer.append(group);
+  }
   refs.svg.append(edgeLayer);
 
   const nodeLayer = svgEl("g", { class: "impact-node-layer" });
   for (const node of scene) {
-    const pos = positions.get(node.id);
-    if (!pos) {
+    const box = boxes.get(node.id);
+    if (!box) {
       continue;
     }
     const isHighlighted = highlight?.highlightedOwnerIds.has(node.id) ?? false;
@@ -365,18 +430,25 @@ function renderCanvas() {
 
     const group = svgEl("g", {
       class: `impact-node${isHighlighted ? " highlight" : ""}${isSelected ? " selected" : ""}`,
-      transform: `translate(${pos.x},${pos.y})`,
+      transform: `translate(${box.x},${box.y})`,
     });
 
-    const circle = svgEl("circle", { r: NODE_RADIUS });
-    const label = svgEl("text", { class: "impact-node-label", y: hasChildren ? -2 : 4 });
-    label.textContent = node.name.length > 8 ? `${node.name.slice(0, 7)}…` : node.name;
+    const rect = svgEl("rect", {
+      x: -box.halfW,
+      y: -box.halfH,
+      width: box.halfW * 2,
+      height: box.halfH * 2,
+      rx: 10,
+      ry: 10,
+    });
+    const label = svgEl("text", { class: "impact-node-label", y: 4 });
+    label.textContent = box.label;
     const titleEl = svgEl("title");
     titleEl.textContent = fullPathLabel(state.nodes, node.id);
-    group.append(circle, titleEl, label);
+    group.append(rect, titleEl, label);
 
     if (hasChildren) {
-      const badge = svgEl("text", { class: "impact-node-badge", y: 14 });
+      const badge = svgEl("text", { class: "impact-node-badge", y: box.halfH + 13 });
       badge.textContent = "▽ 展開可";
       group.append(badge);
     }
@@ -389,7 +461,7 @@ function renderCanvas() {
       }
       event.stopPropagation();
       const start = clientToSvgPoint(event.clientX, event.clientY);
-      state.drag = { nodeId: node.id, offsetX: start.x - pos.x, offsetY: start.y - pos.y, moved: false };
+      state.drag = { nodeId: node.id, offsetX: start.x - box.x, offsetY: start.y - box.y, moved: false };
       group.setPointerCapture(event.pointerId);
     });
     group.addEventListener("pointermove", (event) => {
@@ -438,7 +510,84 @@ function renderCanvas() {
 
     nodeLayer.append(group);
   }
+
+  for (const externalBox of externalBoxes.values()) {
+    const { link } = externalBox;
+    const isHighlighted = highlight?.visitedIds.has(link.externalNodeId) ?? false;
+
+    const group = svgEl("g", {
+      class: `impact-node external${isHighlighted ? " highlight" : ""}`,
+      transform: `translate(${externalBox.x},${externalBox.y})`,
+    });
+    const rect = svgEl("rect", {
+      x: -externalBox.halfW,
+      y: -externalBox.halfH,
+      width: externalBox.halfW * 2,
+      height: externalBox.halfH * 2,
+      rx: 10,
+      ry: 10,
+    });
+    const label = svgEl("text", { class: "impact-node-label", y: 4 });
+    label.textContent = externalBox.label;
+    const titleEl = svgEl("title");
+    titleEl.textContent = `${fullPathLabel(state.nodes, link.externalNodeId)}（別階層・クリックで移動）`;
+    group.append(rect, titleEl, label);
+
+    group.addEventListener("click", (event) => {
+      event.stopPropagation();
+      revealNode(link.externalNodeId);
+    });
+
+    nodeLayer.append(group);
+  }
+
   refs.svg.append(nodeLayer);
+}
+
+function renderEdgeLine(from, to, label, isHighlighted, isExternal) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const start = boxBoundaryPoint(from, from.halfW, from.halfH, dx, dy);
+  const end = boxBoundaryPoint(to, to.halfW, to.halfH, -dx, -dy);
+
+  const group = svgEl("g", {
+    class: `impact-edge${isExternal ? " external" : ""}${isHighlighted ? " highlight" : ""}`,
+  });
+  const line = svgEl("line", {
+    x1: start.x,
+    y1: start.y,
+    x2: end.x,
+    y2: end.y,
+    "marker-end": "url(#impact-arrow)",
+  });
+  group.append(line);
+
+  const midX = (start.x + end.x) / 2;
+  const midY = (start.y + end.y) / 2;
+  const labelBg = svgEl("rect", {
+    x: midX - (label.length * 3.6),
+    y: midY - 9,
+    width: label.length * 7.2,
+    height: 16,
+    rx: 3,
+    class: "impact-edge-label-bg",
+  });
+  const text = svgEl("text", { x: midX, y: midY + 3, class: "impact-edge-label" });
+  text.textContent = label;
+  group.append(labelBg, text);
+  return group;
+}
+
+/** Switches to the node's own sheet/parent scope and selects it - used to "jump" from an external link pseudo-node to the real node. */
+function revealNode(nodeId) {
+  const node = state.nodes.find((n) => n.id === nodeId);
+  if (!node) {
+    return;
+  }
+  state.activeSheetId = node.sheetId;
+  state.focusNodeId = node.parentId;
+  render();
+  selectNode(nodeId);
 }
 
 function handleSvgBackgroundClick() {
@@ -468,6 +617,7 @@ function selectNode(nodeId) {
   state.nodeFormParentId = node.parentId;
   refs.nodeName.value = node.name;
   refs.nodeDescription.value = node.description;
+  setEditorTab("node");
   renderCanvas();
 }
 
@@ -556,12 +706,7 @@ function renderNodeList() {
     label.type = "button";
     label.className = "impact-item-label";
     label.textContent = pathById.get(node.id) || node.name;
-    label.addEventListener("click", () => {
-      state.activeSheetId = node.sheetId;
-      state.focusNodeId = node.parentId;
-      render();
-      selectNode(node.id);
-    });
+    label.addEventListener("click", () => revealNode(node.id));
     li.append(label);
     refs.nodeList.append(li);
   }
@@ -614,6 +759,7 @@ function selectEdge(edge) {
   refs.edgeTarget.value = edge.targetId;
   refs.edgeName.value = edge.name;
   refs.edgeDescription.value = edge.description;
+  setEditorTab("edge");
 }
 
 function saveEdge() {
@@ -871,11 +1017,22 @@ function setMode(mode) {
   renderCanvas();
 }
 
+function setEditorTab(tab) {
+  for (const name of EDITOR_TABS) {
+    refs.editorTabs[name].classList.toggle("active", name === tab);
+    refs.editorPanels[name].classList.toggle("active", name === tab);
+  }
+}
+
 function bindEvents() {
   refs.svg.addEventListener("click", handleSvgBackgroundClick);
 
   refs.modeVisualize.addEventListener("click", () => setMode("visualize"));
   refs.modeEdit.addEventListener("click", () => setMode("edit"));
+
+  for (const name of EDITOR_TABS) {
+    refs.editorTabs[name].addEventListener("click", () => setEditorTab(name));
+  }
 
   for (const radio of refs.directionRadios) {
     radio.addEventListener("change", () => {
@@ -924,6 +1081,18 @@ export function initImpactGraph() {
     status: q("impact-status"),
     modeVisualize: q("impact-mode-visualize"),
     modeEdit: q("impact-mode-edit"),
+    editorTabs: {
+      node: q("impact-editor-tab-node"),
+      edge: q("impact-editor-tab-edge"),
+      snapshot: q("impact-editor-tab-snapshot"),
+      io: q("impact-editor-tab-io"),
+    },
+    editorPanels: {
+      node: q("impact-editor-panel-node"),
+      edge: q("impact-editor-panel-edge"),
+      snapshot: q("impact-editor-panel-snapshot"),
+      io: q("impact-editor-panel-io"),
+    },
     sheetTabs: q("impact-sheet-tabs"),
     sheetNameInput: q("impact-sheet-name-input"),
     sheetAdd: q("impact-sheet-add"),
